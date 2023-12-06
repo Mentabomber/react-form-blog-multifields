@@ -1,4 +1,4 @@
-export default function TextInput({ name, label, placeholder, value, onValueChange, type = 'text' }) {
+export default function TextInput({ name, label, placeholder, value, onValueChange, type = 'text', image }) {
 
     function handleInputChange(e) {
       let newValue = e.target.value;

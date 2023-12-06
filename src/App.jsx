@@ -1,19 +1,68 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import TextInput from "./components/inputs/TextInput";
+import PostEditDialog from "./components/PostEditDialog";
+import ConfirmDialog from "./components/ConfirmDialog";
 
 function App() {
-  // const [email, setEmail] = useState("email_iniziale");
-  // const [password, setPassword] = useState("");
-
+ 
   const initialFormData = {
     title: "Gita al mare",
     content: "Una bella gita al mare con Simone",
-    privacy: false
+    image: "",
+    tag: "Viaggi",
+    categories: ["1","3"],
+    published: false
+
   };
 
-  const [postsList, setPostsList] = useState([]);
-  const [formData, setFormData] = useState(initialFormData);
+  const [postsList, setPostsList] = useState([
 
+    {
+      title: "Gita al mare",
+      content: "Una bella gita al mare con Simone",
+      image: "",
+      categories: [],
+      tag: "",
+      published: false
+  
+    },
+    {
+      title: "Gita in montagna",
+      content: "Una bella gita in montagna con Dedo",
+      image: "",
+      categories: [],
+      tag: "",
+      published: false
+  
+    },
+    {
+      title: "Gita a Trieste",
+      content: "Una bella e calda giornata d'estate passata assieme a Davide a Trieste",
+      image: "",
+      categories: [],
+      tag: "",
+      published: true
+  
+    } 
+
+  ]);
+  const [formData, setFormData] = useState(initialFormData);
+  const [editingId, setEditingId] = useState('');
+  const [showAlert, setShowAlert] = useState(false);
+  const [confirmProps, setConfirmProps] = useState({ show: false });
+
+  useEffect(() => {
+    if (showAlert === true) {
+      setTimeout(() => {
+        setShowAlert(false);
+      }, 2000);
+    }
+  }, [showAlert]);
+
+  useEffect(() => {
+    console.log("Applicazione avviata");
+  }, []);
+  
   function updateFormData(newValue, fieldName) {
     // clono l'oggetto formData
     // usiamo lo spread per eliminare qualsiasi riferimento allo state attuale, 
@@ -32,13 +81,56 @@ function App() {
     // Evita il refresh della pagina come normalmente farebbe il form
     e.preventDefault();
 
-    // Aggiungo l'utente alla lista usersList
-    // Aggiorno lo state
-    setPostsList([...postsList, {
-      ...formData,
-      id: crypto.randomUUID(),
-      createAt: new Date(),
-    }]);
+    // se non esiste un editingId, vuol dire che sto creando un nuovo utente
+    if (!editingId) {
+      setConfirmProps({
+        show: true,
+        title: "Conferma aggiunta",
+        content: `Sei sicuro di voler postare?`,
+        handleConfirmation: () => {
+          
+          // Aggiorno lo state
+          setPostsList([...postsList, {
+            ...formData,
+            id: crypto.randomUUID(),
+            createAt: new Date(),
+          }]);
+
+          setShowAlert(true);
+
+          setConfirmProps({ show: false });
+        },
+        handleCancelation: () => {
+          setConfirmProps({ show: false });
+        }
+      });
+    } else {
+      
+
+      // Vuol dire che sto modificando un utente già esistente
+      // cerco l'utente con l'id editingId
+      const postIndex = postsList.findIndex((post) => post.id === editingId);
+
+      // se non esiste, non faccio nulla
+      if (postIndex === -1) {
+        return;
+      }
+
+      const newPostsList = [...postsList];
+
+      newPostsList[postIndex] = {
+        // Inserisco i dati vecchi
+        ...postsList[postIndex],
+        // Inserisco i dati nuovi
+        ...formData,
+        updatedAt: new Date(),
+      };
+
+      setPostsList(newPostsList);
+
+      // Resetto l'editingId
+      setEditingId('');
+    }
 
     // Resetto il form
     setFormData(initialFormData);
@@ -47,76 +139,174 @@ function App() {
   function handleFormReset(e) {
     // Resetto il form
     setFormData(initialFormData);
+
+    // Resetto l'editingId
+    setEditingId('');
   }
 
-  function editPostTitle(idToEdit) {
-    // Prompt the user for the new title
-    const newTitle = prompt('Enter the new title:');
-  
-    if (newTitle) {
-      // If the user entered a new title, update the postsList
-      setPostsList(postsList.map((post) => {
-        if (post.id === idToEdit) {
-          return { ...post, title: newTitle };
-        }
-        return post;
-      }));
-    } else {
-      // Handle the case where the user didn't enter a new title
-      console.log('No new title entered. Post title remains unchanged.');
+  function editPost(idToEdit) {
+    // cerco un utente con l'id indicato
+    const post = postsList.find((post) => post.id === idToEdit);
+
+    // se non esiste, non faccio nulla
+    if (!post) {
+      return;
     }
+
+    setEditingId(idToEdit);
+
+
   }
-
+  
   function removePost(idToRemove) {
-    // const newPostsList = [...PostsList]
+    
+    const post = postsList.find((post) => post.id === idToRemove);
 
-    // newPostsList.splice(newPostsList.findIndex((Post) => Post.id === idToRemove), 1)
+    setConfirmProps({
+      show: true,
+      content: `Stai per eliminare in modo definitivo il post ${post.title}. Sei sicuro di voler procedere?`,
+      handleConfirmation: () => {
+        setPostsList(postsList.filter((post) => post.id !== idToRemove));
 
-    setPostsList(postsList.filter((post) => post.id !== idToRemove));
+        setConfirmProps({ show: false });
+      },
+      handleCancelation: () => {
+        setConfirmProps({ show: false });
+      }
+    });
+  }
+   
+  function handleEditDialogSubmit(newData) {
+    const post = postsList.find((post) => post.id === editingId);
+
+    setConfirmProps({
+      show: true,
+      title: "Conferma aggiornamento",
+      content: `Stai per aggiornare il post ${post.name}. Sei sicur* di voler procedere?`,
+      handleConfirmation: () => {
+        const newPostsList = postsList.map((post) => {
+          if (post.id === editingId) {
+            return {
+              ...post,
+              ...newData,
+              updatedAt: new Date(),
+            };
+          }
+
+          return post;
+        });
+
+        setPostsList(newPostsList);
+
+        // Resetto l'editingId
+        setEditingId('');
+
+        setConfirmProps({ show: false });
+      },
+      handleCancelation: () => {
+        setConfirmProps({ show: false });
+      }
+    });
+  }
+  
+  function handleCategoriesChange(e) {
+    // recupero il valore del checkbox
+    const value = e.target.value;
+
+    // recupero lo stato della checkbox
+    const checked = e.target.checked;
+
+    let categories = [...formData.categories];
+
+    if (checked) {
+      categories.push(value);
+    } else {
+      categories = categories.filter((color) => color !== value);
+    }
+
+    updateFormData(categories, 'categories');
   }
 
   return (
     <main>
-      <div className="container mx-auto">
-        <h1 className="text-4xl">Il tuo nuovo post</h1>
+    <div className="container mx-auto">
+      <h1 className="text-4xl">I tuoi nuovi post</h1>
 
-        <form className="flex flex-col gap-4 mx-auto py-8" onSubmit={handleFormSubmit} onReset={handleFormReset}>
-          <TextInput name="title" placeholder="Post's title" label="Title" type="text"
-            value={formData.title}
-            onValueChange={(newValue) => updateFormData(newValue, 'title')}></TextInput>
+      <form className="flex flex-col gap-4 mx-auto py-8" onSubmit={handleFormSubmit} onReset={handleFormReset}>
+        <TextInput name="title" placeholder="Titolo post" label="Titolo" type="text"
+          value={formData.title}
+          onValueChange={(newValue) => updateFormData(newValue, 'title')}></TextInput>
 
-          <TextInput name="content" placeholder="Post's content" label="Content"
-            value={formData.content}
-            onValueChange={(newValue) => updateFormData(newValue, 'content')}></TextInput>
+        <TextInput name="content" placeholder="Contenuto del post" label="Contenuto"
+          value={formData.content}
+          onValueChange={(newValue) => updateFormData(newValue, 'content')}></TextInput>
 
-          <TextInput name="privacy" label="Informativa privacy" type="checkbox"
-            value={formData.privacy}
-            onValueChange={(newValue) => updateFormData(newValue, 'privacy')}></TextInput>
+        <TextInput name="image" placeholder="Immagine" label="Immagine"
+          value={formData.image}
+          onValueChange={(newValue) => updateFormData(newValue, 'image')}></TextInput>
 
-          <div className="flex gap-6">
-            <button className="px-4 py-3 bg-red-300 hover:bg-red-600"
-              type="reset">Reset</button>
+        <TextInput name="published" label="Pubblica" type="checkbox"
+          value={formData.published}
+          onValueChange={(newValue) => updateFormData(newValue, 'published')}></TextInput>
 
-            <button className="px-4 py-3 bg-green-300 hover:bg-green-600"
-            >Submit</button>
-          </div>
-        </form>
+        <TextInput name="tag" label="Tags" type="text"
+          value={formData.tag}
+          onValueChange={(newValue) => updateFormData(newValue, 'published')}></TextInput>
 
-        <div className="border-t">
-          <ul>
-            {postsList.map((post) => (
-              <li key={post.id} className="flex py-4 border-b">{post.title} - {post.content}
-                <button className="p-5 w-6 h-6 flex items-center justify-center ml-auto bg-red-500 text-white font-bold"
-                  onClick={() => editPostTitle(post.id)}>Edit</button>
-                <button className="w-6 h-6 flex items-center justify-center ml-auto bg-red-500 text-white font-bold"
-                  onClick={() => removePost(post.id)}>X</button>
-              </li>
-            ))}
-          </ul>
+
+        <div className="flex gap-4">
+          <label className=""><input type="checkbox" checked={formData.categories.includes('1')} value="1" onChange={handleCategoriesChange} /> Viaggi</label>
+          <label className=""><input type="checkbox" checked={formData.categories.includes('2')} value="2" onChange={handleCategoriesChange} /> Cucina</label>
+          <label className=""><input type="checkbox" checked={formData.categories.includes('3')} value="3" onChange={handleCategoriesChange} /> Lavoro</label>
+          <label className=""><input type="checkbox" checked={formData.categories.includes('4')} value="4" onChange={handleCategoriesChange} /> Politica</label>
         </div>
+
+        <div className="flex gap-6">
+          <button className="px-4 py-3 bg-red-300 hover:bg-red-600"
+            type="reset">{editingId ? 'Annulla' : 'Reset'}</button>
+
+          <button className="px-4 py-3 bg-green-300 hover:bg-green-600"
+            type="submit">{editingId ? 'Salva modifiche' : 'Submit'}</button>
+        </div>
+      </form>
+
+      {/* 
+        Se showAlert è a true lo mostra, altrimenti no.
+        Dopo 5 secondi che è visibile, lo dobbiamo nascondere.
+       */}
+      {showAlert && <div className="bg-green-300 p-8" >Post mandato!</div>}
+
+      <div className="border-t">
+        <ul>
+          {postsList.map((post) => (
+            <li key={post.id} className="flex py-4 border-b">{post.title} - {post.content}
+
+              <div className="flex gap-4 items-center ml-auto">
+                <button className="px-3 py-2 flex items-center justify-center bg-blue-300 disabled:bg-slate-300 disabled:text-slate-500 font-bold"
+                  onClick={() => editPost(post.id)}
+                  disabled={!!editingId}>Modifica</button>
+
+                <button className="w-6 h-6 flex items-center justify-center bg-red-500 disabled:bg-slate-300 text-white font-bold"
+                  onClick={() => removePost(post.id)}
+                  disabled={editingId === post.id}>X</button>
+              </div>
+            </li>
+          ))}
+        </ul>
       </div>
-    </main>
+    </div>
+
+    {/* finestra dialog */}
+    <PostEditDialog show={!!editingId}
+      handleCancel={() => setEditingId('')}
+      handleSubmit={handleEditDialogSubmit}
+      formData={postsList.find((post) => post.id === editingId)}
+    ></PostEditDialog>
+
+    <ConfirmDialog {...confirmProps}></ConfirmDialog>
+  </main>
   );
 }
+
 
 export default App;
