@@ -58,7 +58,7 @@ export default function PostEditDialog({ show, handleCancel, handleSubmit, formD
 
             <TextInput name="image" label="Immagine" type="file"
               value={internalData.published ?? ''}
-              onValueChange={(newValue) => updateFormData(newValue, 'image')}></TextInput>
+              onValueChange={(newValue) => updateFormData(newValue, 'file')}></TextInput>
           </form>
         </div>
 

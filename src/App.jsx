@@ -241,9 +241,9 @@ function App() {
           value={formData.content}
           onValueChange={(newValue) => updateFormData(newValue, 'content')}></TextInput>
 
-        <TextInput name="image" placeholder="Immagine" label="Immagine"
+        <TextInput name="file" placeholder="Immagine" label="Immagine" type="file"
           value={formData.image}
-          onValueChange={(newValue) => updateFormData(newValue, 'image')}></TextInput>
+          onValueChange={(newValue) => updateFormData(newValue, 'file')}></TextInput>
 
         <TextInput name="published" label="Pubblica" type="checkbox"
           value={formData.published}
