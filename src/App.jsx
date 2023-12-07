@@ -11,6 +11,7 @@ function App() {
     image: "",
     tags: ["Viaggi","Sport"],
     category: ["Viaggi"],
+    id: crypto.randomUUID(),
     published: true
 
   };
@@ -22,6 +23,7 @@ function App() {
       image: "",
       tags: ["Viaggi","Sport"],
       category: ["Viaggi"],
+      id: crypto.randomUUID(),
       published: false
   
     },
@@ -31,6 +33,7 @@ function App() {
       image: "",
       tags: ["Viaggi","Sport"],
       category: ["Viaggi"],
+      id: crypto.randomUUID(),
       published: false
   
     },
@@ -40,6 +43,7 @@ function App() {
       image: "",
       tags: ["Viaggi","Sport"],
       category: ["Viaggi"],
+      id: crypto.randomUUID(),
       published: true
   
     } 
@@ -181,7 +185,7 @@ function App() {
     setConfirmProps({
       show: true,
       title: "Conferma aggiornamento",
-      content: `Stai per aggiornare il post ${post.name}. Sei sicur* di voler procedere?`,
+      content: `Stai per aggiornare il post ${post.title}. Sei sicuro di voler procedere?`,
       handleConfirmation: () => {
         const newPostsList = postsList.map((post) => {
           if (post.id === editingId) {
@@ -302,12 +306,16 @@ function App() {
     </div>
 
     {/* finestra dialog */}
-    {console.log(editingId, "id")}
-    <PostEditDialog show={!!editingId}
-      handleCancel={() => setEditingId('')}
-      handleSubmit={handleEditDialogSubmit}
-      formData={postsList.find((post) => post.id === editingId)}
-    ></PostEditDialog>
+
+    {editingId && (
+  <PostEditDialog
+    show={!!editingId}
+    handleCancel={() => setEditingId('')}
+    handleSubmit={handleEditDialogSubmit}
+    formData={postsList.find((post) => post.id === editingId)}
+  ></PostEditDialog>
+)}
+
 
     <ConfirmDialog {...confirmProps}></ConfirmDialog>
   </main>
