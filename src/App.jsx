@@ -6,23 +6,22 @@ import ConfirmDialog from "./components/ConfirmDialog";
 function App() {
  
   const initialFormData = {
-    title: "Gita al mare",
-    content: "Una bella gita al mare con Simone",
+    title: "Gita al mare in Grecia",
+    content: "Una bella gita al mare in Grecia con Simone",
     image: "",
-    tag: "Viaggi",
-    categories: ["1","3"],
-    published: false
+    tags: ["Viaggi","Sport"],
+    category: ["Viaggi"],
+    published: true
 
   };
-
   const [postsList, setPostsList] = useState([
 
     {
       title: "Gita al mare",
       content: "Una bella gita al mare con Simone",
       image: "",
-      categories: [],
-      tag: "",
+      tags: ["Viaggi","Sport"],
+      category: ["Viaggi"],
       published: false
   
     },
@@ -30,8 +29,8 @@ function App() {
       title: "Gita in montagna",
       content: "Una bella gita in montagna con Dedo",
       image: "",
-      categories: [],
-      tag: "",
+      tags: ["Viaggi","Sport"],
+      category: ["Viaggi"],
       published: false
   
     },
@@ -39,8 +38,8 @@ function App() {
       title: "Gita a Trieste",
       content: "Una bella e calda giornata d'estate passata assieme a Davide a Trieste",
       image: "",
-      categories: [],
-      tag: "",
+      tags: ["Viaggi","Sport"],
+      category: ["Viaggi"],
       published: true
   
     } 
@@ -209,22 +208,22 @@ function App() {
     });
   }
   
-  function handleCategoriesChange(e) {
+  function handleTagsChange(e) {
     // recupero il valore del checkbox
     const value = e.target.value;
-
+  
     // recupero lo stato della checkbox
     const checked = e.target.checked;
-
-    let categories = [...formData.categories];
-
+  
+    let tags = formData?.tags || [];
+  
     if (checked) {
-      categories.push(value);
+      tags.push(value);
     } else {
-      categories = categories.filter((color) => color !== value);
+      tags = tags.filter((tag) => tag !== value);
     }
-
-    updateFormData(categories, 'categories');
+  
+    updateFormData(tags, 'tags');
   }
 
   return (
@@ -249,16 +248,22 @@ function App() {
           value={formData.published}
           onValueChange={(newValue) => updateFormData(newValue, 'published')}></TextInput>
 
-        <TextInput name="tag" label="Tags" type="text"
-          value={formData.tag}
-          onValueChange={(newValue) => updateFormData(newValue, 'published')}></TextInput>
-
+        <TextInput name="category" label="Category" type="text"
+          value={formData.category}
+          onValueChange={(newValue) => updateFormData(newValue, 'category')}></TextInput>
+          <select value={formData.category} onChange={(e) => updateFormData(e.target.value, 'category')}>
+            <option value=""></option>
+            <option value="Viaggi" >Viaggi</option>
+            <option value="Politica" >Politica</option>
+            <option value="Cucina" >Cucina</option>
+            <option value="Sport" >Sport</option>
+          </select>
 
         <div className="flex gap-4">
-          <label className=""><input type="checkbox" checked={formData.categories.includes('1')} value="1" onChange={handleCategoriesChange} /> Viaggi</label>
-          <label className=""><input type="checkbox" checked={formData.categories.includes('2')} value="2" onChange={handleCategoriesChange} /> Cucina</label>
-          <label className=""><input type="checkbox" checked={formData.categories.includes('3')} value="3" onChange={handleCategoriesChange} /> Lavoro</label>
-          <label className=""><input type="checkbox" checked={formData.categories.includes('4')} value="4" onChange={handleCategoriesChange} /> Politica</label>
+          <label className=""><input type="checkbox" checked={formData.tags.includes('1')} value="1" onChange={handleTagsChange} /> Viaggi</label>
+          <label className=""><input type="checkbox" checked={formData.tags.includes('2')} value="2" onChange={handleTagsChange} /> Cucina</label>
+          <label className=""><input type="checkbox" checked={formData.tags.includes('3')} value="3" onChange={handleTagsChange} /> Lavoro</label>
+          <label className=""><input type="checkbox" checked={formData.tags.includes('4')} value="4" onChange={handleTagsChange} /> Politica</label>
         </div>
 
         <div className="flex gap-6">
@@ -297,6 +302,7 @@ function App() {
     </div>
 
     {/* finestra dialog */}
+    {console.log(editingId, "id")}
     <PostEditDialog show={!!editingId}
       handleCancel={() => setEditingId('')}
       handleSubmit={handleEditDialogSubmit}
